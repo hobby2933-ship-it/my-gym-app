@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ProLift App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f8fafc; --sec: #94a3b8; }
+        body { font-family: system-ui, -apple-system; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        .header { padding: 20px; background: var(--card); border-bottom: 1px solid #334155; text-align: center; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #334155; }
+        .nav-btn { color: var(--sec); text-decoration: none; font-size: 12px; font-weight: bold; border: none; background: none; cursor: pointer; }
+        .nav-btn.active { color: var(--accent); }
+        .container { padding: 15px; }
+        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; width: 50px; text-align: center; }
+        .btn { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2 id="day-name" style="margin:0">Workout</h2>
+        <p id="muscle-group" style="color: var(--accent); margin: 5px 0 0 0; font-size: 14px;"></p>
+    </div>
+
+    <div id="log-page" class="container">
+        <div id="exercise-list"></div>
+        <button class="btn" onclick="saveData()">SAVE WORKOUT</button>
+    </div>
+
+    <div id="stats-page" class="container hidden">
+        <div class="card"><canvas id="myChart"></canvas></div>
+        <p style="text-align: center; color: var(--sec);">Your data is saved locally on this phone.</p>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="showPage('log')">LOG</button>
+        <button class="nav-btn" onclick="showPage('stats')">STATS</button>
+    </div>
+
+    <script>
+        const schedule = {
+            1: { name: "Chest & Triceps", ex: ["Bench Press", "Incline Press", "Pec Flys", "Pushdowns", "Skull Crushers", "Dips"] },
+            2: { name: "Back & Biceps", ex: ["Lat Pulldowns", "Cable Rows", "T-Bar Rows", "Barbell Curls", "Hammer Curls"] },
+            3: { name: "Legs", ex: ["Squat", "Lunges", "Calf Raise", "Leg Press", "Leg Extension", "Hamstring Curls"] },
+            4: { name: "Back & Chest", ex: ["Bench Press", "Lat Pulldown", "Incline Press", "Rows"] },
+            5: { name: "Shoulders/Abs/Arms", ex: ["Shoulder Press", "Lateral Raise", "Front Raise", "Reverse Flys", "Curls"] },
+            6: { name: "Legs", ex: ["Squat", "Leg Press", "Leg Ext", "Hamstring Curls"] },
+            0: { name: "Rest Day", ex: [] }
+        };
+
+        function showPage(page) {
+            document.getElementById('log-page').classList.toggle('hidden', page !== 'log');
+            document.getElementById('stats-page').classList.toggle('hidden', page !== 'stats');
+            if(page === 'stats') renderChart();
+        }
+
+        function init() {
+            const day = new Date().getDay();
+            const workout = schedule[day];
+            document.getElementById('muscle-group').innerText = workout.name;
+            let html = '';
+            workout.ex.forEach(name => {
+                html += `<div class="card">
+                    <h4 style="margin:0 0 10px 0">${name}</h4>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--sec)"><span>SET</span><span>KG</span><span>REPS</span><span>RPE</span></div>
+                    ${[1,2,3].map(s => `<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>${s}</span><input type="number"><input type="number"><input type="number"></div>`).join('')}
+                </div>`;
+            });
+            document.getElementById('exercise-list').innerHTML = html || '<h3>Enjoy your Rest Day!</h3>';
+        }
+
+        function saveData() {
+            const history = JSON.parse(localStorage.getItem('logs') || '[]');
+            history.push({ date: new Date().toLocaleDateString(), count: 1 });
+            localStorage.setItem('logs', JSON.stringify(history));
+            alert("Saved!");
+        }
+
+        function renderChart() {
+            const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+            new Chart(document.getElementById('myChart'), {
+                type: 'bar',
+                data: { labels: logs.map(l => l.date), datasets: [{ label: 'Workouts', data: logs.map(l => l.count), backgroundColor: '#38bdf8' }] }
+            });
+        }
+        init();
+    </script>
+</body>
+</html>
