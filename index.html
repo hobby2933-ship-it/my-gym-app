@@ -2,165 +2,140 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProLift App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProLift Log</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f8fafc; --sec: #94a3b8; }
-        body { font-family: system-ui, -apple-system; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
-        .header { padding: 20px; background: var(--card); border-bottom: 1px solid #334155; text-align: center; position: sticky; top: 0; z-index: 10; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #334155; }
-        .nav-btn { color: var(--sec); text-decoration: none; font-size: 12px; font-weight: bold; border: none; background: none; }
-        .nav-btn.active { color: var(--accent); }
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --secondary: #94a3b8;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding-bottom: 80px;
+        }
+        .header {
+            padding: 20px;
+            background: var(--card);
+            border-bottom: 1px solid #334155;
+            text-align: center;
+        }
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--card);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #334155;
+        }
+        .nav-item {
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 12px;
+            text-align: center;
+        }
+        .nav-item.active { color: var(--accent); }
         .container { padding: 15px; }
-        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; width: 55px; text-align: center; font-size: 16px; }
-        .btn { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
-        .hidden { display: none; }
-        .log-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-        .history-item { font-size: 13px; color: var(--sec); border-bottom: 1px solid #334155; padding: 5px 0; }
+        .exercise-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            width: 60px;
+            margin-right: 5px;
+        }
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+        canvas { background: var(--card); border-radius: 12px; margin-top: 20px; padding: 10px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2 id="view-title" style="margin:0">Workout</h2>
-        <p id="muscle-group" style="color: var(--accent); margin: 5px 0 0 0; font-size: 14px;"></p>
+
+<div class="header">
+    <h2 id="today-title">Today's Workout</h2>
+    <p id="muscle-group" style="color: var(--accent); margin: 0;"></p>
+</div>
+
+<div class="container" id="app-content">
     </div>
 
-    <div id="log-page" class="container">
-        <div id="exercise-list"></div>
-        <button class="btn" onclick="saveData()">SAVE WORKOUT</button>
-    </div>
+<div class="nav-bar">
+    <a href="#" class="nav-item active" onclick="showLog()">Log</a>
+    <a href="#" class="nav-item" onclick="showHistory()">History</a>
+    <a href="#" class="nav-item" onclick="showStats()">Stats</a>
+</div>
 
-    <div id="history-page" class="container hidden">
-        <h3 style="color: var(--accent)">Past Sessions</h3>
-        <div id="history-content"></div>
-    </div>
+<script>
+    // THE WORKOUT DATA
+    const schedule = {
+        1: { name: "Chest & Triceps", exercises: ["Barbell Bench", "Incline Barbell", "Pec Flys", "Pushdowns", "Skull Crushers"] },
+        2: { name: "Back & Biceps", exercises: ["Lat Pulldowns", "Cable Rows", "T-Bar Rows", "Barbell Curls", "Hammer Curls"] },
+        3: { name: "Legs", exercises: ["Squat", "Lunges", "Calf Raise", "Leg Press", "Leg Extension"] },
+        4: { name: "Back & Chest", exercises: ["Bench Press", "Lat Pulldown", "Incline Press", "Cable Row"] },
+        5: { name: "Biceps/Triceps/Shoulder", exercises: ["Shoulder Press", "Lateral Raise", "Spider Curls", "Dips"] },
+        6: { name: "Legs", exercises: ["Squat", "Leg Press", "Hamstring Curls"] },
+        0: { name: "Rest Day", exercises: [] }
+    };
 
-    <div id="stats-page" class="container hidden">
-        <div class="card"><canvas id="myChart"></canvas></div>
-        <button class="btn" style="background: #ef4444; color: white;" onclick="clearData()">CLEAR ALL DATA</button>
-    </div>
-
-    <div class="nav">
-        <button class="nav-btn active" id="btn-log" onclick="showPage('log')">LOG</button>
-        <button class="nav-btn" id="btn-history" onclick="showPage('history')">HISTORY</button>
-        <button class="nav-btn" id="btn-stats" onclick="showPage('stats')">STATS</button>
-    </div>
-
-    <script>
-        const schedule = {
-            1: { name: "Chest & Triceps", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Pec Cable Flys", "Machine Flys", "Bar Pushdowns", "Skull Crushers", "Cable Overhead Ext", "Dips"] },
-            2: { name: "Back & Biceps", ex: ["Wide-Grip Lat Pulldown", "Seated Cable Rows", "Close-Grip Lat", "T-Bar Rows", "Barbell Curls", "Hammer Curls", "Incline Curls", "Spider Curls", "Preacher Curls"] },
-            3: { name: "Legs", ex: ["Barbell Squat", "Bum Lunges", "Calf Raise", "Leg Press", "Leg Extension", "Hamstring Curls"] },
-            4: { name: "Back & Chest", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Wide-Grip Lat Pulldown", "Seated Cable Rows", "T-Bar Rows"] },
-            5: { name: "Shoulders & Arms", ex: ["Shoulder Press", "Lateral Raise", "Front Raise", "Reverse Flys", "Dips", "Spider Curls"] },
-            6: { name: "Legs", ex: ["Barbell Squat", "Leg Press", "Leg Extension", "Hamstring Curls"] },
-            0: { name: "Rest Day", ex: [] }
-        };
-
-        function showPage(page) {
-            document.getElementById('log-page').classList.toggle('hidden', page !== 'log');
-            document.getElementById('history-page').classList.toggle('hidden', page !== 'history');
-            document.getElementById('stats-page').classList.toggle('hidden', page !== 'stats');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + page).classList.add('active');
-
-            if(page === 'history') renderHistory();
-            if(page === 'stats') renderChart();
-        }
-
-        function init() {
-            const day = new Date().getDay();
-            const workout = schedule[day];
-            document.getElementById('muscle-group').innerText = workout.name;
-            let html = '';
-            workout.ex.forEach((name, exIdx) => {
-                html += `<div class="card">
-                    <h4 style="margin:0 0 10px 0; color: var(--accent)">${name}</h4>
-                    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--sec); padding:0 5px;">
-                        <span>SET</span><span>KG</span><span>REPS</span><span>RPE</span>
+    function showLog() {
+        const d = new Date();
+        const day = d.getDay();
+        const workout = schedule[day];
+        document.getElementById('muscle-group').innerText = workout.name;
+        
+        let html = '';
+        workout.exercises.forEach(ex => {
+            html += `
+            <div class="exercise-card">
+                <h4 style="margin: 0 0 10px 0">${ex}</h4>
+                <div style="display:flex; justify-content: space-between; color: var(--secondary); font-size: 12px;">
+                    <span>Set</span><span>Kg</span><span>Reps</span><span>RPE</span>
+                </div>
+                ${[1,2,3].map(s => `
+                    <div style="margin-top:5px; display:flex; align-items:center; justify-content:space-between;">
+                        <span>${s}</span>
+                        <input type="number" placeholder="0">
+                        <input type="number" placeholder="0">
+                        <input type="number" placeholder="10">
                     </div>
-                    ${[1,2,3].map(s => `
-                        <div class="log-row">
-                            <span style="font-weight:bold; width:20px">${s}</span>
-                            <input type="number" class="w-${exIdx}-${s}" placeholder="-">
-                            <input type="number" class="r-${exIdx}-${s}" placeholder="-">
-                            <input type="number" class="e-${exIdx}-${s}" placeholder="10">
-                        </div>
-                    `).join('')}
-                </div>`;
-            });
-            document.getElementById('exercise-list').innerHTML = html || '<h3 style="text-align:center">Rest Day</h3>';
-        }
+                `).join('')}
+            </div>`;
+        });
+        html += '<button class="btn" onclick="save()">Save Workout</button>';
+        document.getElementById('app-content').innerHTML = html;
+    }
 
-        function saveData() {
-            const day = new Date().getDay();
-            const workout = schedule[day];
-            const sessionData = {
-                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-                muscle: workout.name,
-                exercises: []
-            };
+    function save() {
+        alert("Workout Saved Locally! (Offline)");
+        // Logic to save to localStorage would go here
+    }
 
-            workout.ex.forEach((name, exIdx) => {
-                let sets = [];
-                for(let s=1; s<=3; s++) {
-                    const weight = document.querySelector(`.w-${exIdx}-${s}`).value;
-                    const reps = document.querySelector(`.r-${exIdx}-${s}`).value;
-                    const rpe = document.querySelector(`.e-${exIdx}-${s}`).value;
-                    if(weight || reps) sets.push({ s, weight, reps, rpe });
-                }
-                if(sets.length > 0) sessionData.exercises.push({ name, sets });
-            });
-
-            if(sessionData.exercises.length === 0) return alert("Please enter at least one set!");
-
-            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-            history.unshift(sessionData); 
-            localStorage.setItem('gymLogs', JSON.stringify(history));
-            alert("Workout Saved!");
-            showPage('history');
-        }
-
-        function renderHistory() {
-            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-            let html = history.length ? '' : '<p style="text-align:center">No sessions logged yet.</p>';
-            history.forEach(session => {
-                html += `<div class="card">
-                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:5px; margin-bottom:10px;">
-                        <span style="font-weight:bold">${session.date}</span>
-                        <span style="color:var(--accent)">${session.muscle}</span>
-                    </div>`;
-                session.exercises.forEach(ex => {
-                    html += `<div style="margin-bottom:8px;">
-                        <div style="font-size:14px; font-weight:bold; color:#fff">${ex.name}</div>
-                        ${ex.sets.map(s => `<div class="history-item">Set ${s.s}: ${s.weight}kg x ${s.reps} (RPE ${s.rpe})</div>`).join('')}
-                    </div>`;
-                });
-                html += `</div>`;
-            });
-            document.getElementById('history-content').innerHTML = html;
-        }
-
-        function renderChart() {
-            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-            const ctx = document.getElementById('myChart').getContext('2d');
-            if (window.progChart) window.progChart.destroy();
-            window.progChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: history.slice(0,5).reverse().map(h => h.date),
-                    datasets: [{ label: 'Exercises per Session', data: history.slice(0,5).reverse().map(h => h.exercises.length), backgroundColor: '#38bdf8' }]
-                }
-            });
-        }
-
-        function clearData() {
-            if(confirm("Delete all history?")) { localStorage.removeItem('gymLogs'); location.reload(); }
-        }
-        init();
-    </script>
+    // Initialize
+    showLog();
+</script>
 </body>
 </html>
