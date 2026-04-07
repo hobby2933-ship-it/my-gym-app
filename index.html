@@ -8,20 +8,22 @@
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f8fafc; --sec: #94a3b8; }
         body { font-family: system-ui, -apple-system; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
-        .header { padding: 20px; background: var(--card); border-bottom: 1px solid #334155; text-align: center; }
+        .header { padding: 20px; background: var(--card); border-bottom: 1px solid #334155; text-align: center; position: sticky; top: 0; z-index: 10; }
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #334155; }
-        .nav-btn { color: var(--sec); text-decoration: none; font-size: 12px; font-weight: bold; border: none; background: none; cursor: pointer; }
+        .nav-btn { color: var(--sec); text-decoration: none; font-size: 12px; font-weight: bold; border: none; background: none; }
         .nav-btn.active { color: var(--accent); }
         .container { padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; width: 50px; text-align: center; }
-        .btn { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; }
+        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; width: 55px; text-align: center; font-size: 16px; }
+        .btn { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
         .hidden { display: none; }
+        .log-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .history-item { font-size: 13px; color: var(--sec); border-bottom: 1px solid #334155; padding: 5px 0; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2 id="day-name" style="margin:0">Workout</h2>
+        <h2 id="view-title" style="margin:0">Workout</h2>
         <p id="muscle-group" style="color: var(--accent); margin: 5px 0 0 0; font-size: 14px;"></p>
     </div>
 
@@ -30,30 +32,42 @@
         <button class="btn" onclick="saveData()">SAVE WORKOUT</button>
     </div>
 
+    <div id="history-page" class="container hidden">
+        <h3 style="color: var(--accent)">Past Sessions</h3>
+        <div id="history-content"></div>
+    </div>
+
     <div id="stats-page" class="container hidden">
         <div class="card"><canvas id="myChart"></canvas></div>
-        <p style="text-align: center; color: var(--sec);">Your data is saved locally on this phone.</p>
+        <button class="btn" style="background: #ef4444; color: white;" onclick="clearData()">CLEAR ALL DATA</button>
     </div>
 
     <div class="nav">
-        <button class="nav-btn active" onclick="showPage('log')">LOG</button>
-        <button class="nav-btn" onclick="showPage('stats')">STATS</button>
+        <button class="nav-btn active" id="btn-log" onclick="showPage('log')">LOG</button>
+        <button class="nav-btn" id="btn-history" onclick="showPage('history')">HISTORY</button>
+        <button class="nav-btn" id="btn-stats" onclick="showPage('stats')">STATS</button>
     </div>
 
     <script>
         const schedule = {
-            1: { name: "Chest & Triceps", ex: ["Bench Press", "Incline Press", "Pec Flys", "Pushdowns", "Skull Crushers", "Dips"] },
-            2: { name: "Back & Biceps", ex: ["Lat Pulldowns", "Cable Rows", "T-Bar Rows", "Barbell Curls", "Hammer Curls"] },
-            3: { name: "Legs", ex: ["Squat", "Lunges", "Calf Raise", "Leg Press", "Leg Extension", "Hamstring Curls"] },
-            4: { name: "Back & Chest", ex: ["Bench Press", "Lat Pulldown", "Incline Press", "Rows"] },
-            5: { name: "Shoulders/Abs/Arms", ex: ["Shoulder Press", "Lateral Raise", "Front Raise", "Reverse Flys", "Curls"] },
-            6: { name: "Legs", ex: ["Squat", "Leg Press", "Leg Ext", "Hamstring Curls"] },
+            1: { name: "Chest & Triceps", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Pec Cable Flys", "Machine Flys", "Bar Pushdowns", "Skull Crushers", "Cable Overhead Ext", "Dips"] },
+            2: { name: "Back & Biceps", ex: ["Wide-Grip Lat Pulldown", "Seated Cable Rows", "Close-Grip Lat", "T-Bar Rows", "Barbell Curls", "Hammer Curls", "Incline Curls", "Spider Curls", "Preacher Curls"] },
+            3: { name: "Legs", ex: ["Barbell Squat", "Bum Lunges", "Calf Raise", "Leg Press", "Leg Extension", "Hamstring Curls"] },
+            4: { name: "Back & Chest", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Wide-Grip Lat Pulldown", "Seated Cable Rows", "T-Bar Rows"] },
+            5: { name: "Shoulders & Arms", ex: ["Shoulder Press", "Lateral Raise", "Front Raise", "Reverse Flys", "Dips", "Spider Curls"] },
+            6: { name: "Legs", ex: ["Barbell Squat", "Leg Press", "Leg Extension", "Hamstring Curls"] },
             0: { name: "Rest Day", ex: [] }
         };
 
         function showPage(page) {
             document.getElementById('log-page').classList.toggle('hidden', page !== 'log');
+            document.getElementById('history-page').classList.toggle('hidden', page !== 'history');
             document.getElementById('stats-page').classList.toggle('hidden', page !== 'stats');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + page).classList.add('active');
+
+            if(page === 'history') renderHistory();
             if(page === 'stats') renderChart();
         }
 
@@ -62,29 +76,89 @@
             const workout = schedule[day];
             document.getElementById('muscle-group').innerText = workout.name;
             let html = '';
-            workout.ex.forEach(name => {
+            workout.ex.forEach((name, exIdx) => {
                 html += `<div class="card">
-                    <h4 style="margin:0 0 10px 0">${name}</h4>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--sec)"><span>SET</span><span>KG</span><span>REPS</span><span>RPE</span></div>
-                    ${[1,2,3].map(s => `<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>${s}</span><input type="number"><input type="number"><input type="number"></div>`).join('')}
+                    <h4 style="margin:0 0 10px 0; color: var(--accent)">${name}</h4>
+                    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--sec); padding:0 5px;">
+                        <span>SET</span><span>KG</span><span>REPS</span><span>RPE</span>
+                    </div>
+                    ${[1,2,3].map(s => `
+                        <div class="log-row">
+                            <span style="font-weight:bold; width:20px">${s}</span>
+                            <input type="number" class="w-${exIdx}-${s}" placeholder="-">
+                            <input type="number" class="r-${exIdx}-${s}" placeholder="-">
+                            <input type="number" class="e-${exIdx}-${s}" placeholder="10">
+                        </div>
+                    `).join('')}
                 </div>`;
             });
-            document.getElementById('exercise-list').innerHTML = html || '<h3>Enjoy your Rest Day!</h3>';
+            document.getElementById('exercise-list').innerHTML = html || '<h3 style="text-align:center">Rest Day</h3>';
         }
 
         function saveData() {
-            const history = JSON.parse(localStorage.getItem('logs') || '[]');
-            history.push({ date: new Date().toLocaleDateString(), count: 1 });
-            localStorage.setItem('logs', JSON.stringify(history));
-            alert("Saved!");
+            const day = new Date().getDay();
+            const workout = schedule[day];
+            const sessionData = {
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                muscle: workout.name,
+                exercises: []
+            };
+
+            workout.ex.forEach((name, exIdx) => {
+                let sets = [];
+                for(let s=1; s<=3; s++) {
+                    const weight = document.querySelector(`.w-${exIdx}-${s}`).value;
+                    const reps = document.querySelector(`.r-${exIdx}-${s}`).value;
+                    const rpe = document.querySelector(`.e-${exIdx}-${s}`).value;
+                    if(weight || reps) sets.push({ s, weight, reps, rpe });
+                }
+                if(sets.length > 0) sessionData.exercises.push({ name, sets });
+            });
+
+            if(sessionData.exercises.length === 0) return alert("Please enter at least one set!");
+
+            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+            history.unshift(sessionData); 
+            localStorage.setItem('gymLogs', JSON.stringify(history));
+            alert("Workout Saved!");
+            showPage('history');
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+            let html = history.length ? '' : '<p style="text-align:center">No sessions logged yet.</p>';
+            history.forEach(session => {
+                html += `<div class="card">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:5px; margin-bottom:10px;">
+                        <span style="font-weight:bold">${session.date}</span>
+                        <span style="color:var(--accent)">${session.muscle}</span>
+                    </div>`;
+                session.exercises.forEach(ex => {
+                    html += `<div style="margin-bottom:8px;">
+                        <div style="font-size:14px; font-weight:bold; color:#fff">${ex.name}</div>
+                        ${ex.sets.map(s => `<div class="history-item">Set ${s.s}: ${s.weight}kg x ${s.reps} (RPE ${s.rpe})</div>`).join('')}
+                    </div>`;
+                });
+                html += `</div>`;
+            });
+            document.getElementById('history-content').innerHTML = html;
         }
 
         function renderChart() {
-            const logs = JSON.parse(localStorage.getItem('logs') || '[]');
-            new Chart(document.getElementById('myChart'), {
+            const history = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (window.progChart) window.progChart.destroy();
+            window.progChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: logs.map(l => l.date), datasets: [{ label: 'Workouts', data: logs.map(l => l.count), backgroundColor: '#38bdf8' }] }
+                data: {
+                    labels: history.slice(0,5).reverse().map(h => h.date),
+                    datasets: [{ label: 'Exercises per Session', data: history.slice(0,5).reverse().map(h => h.exercises.length), backgroundColor: '#38bdf8' }]
+                }
             });
+        }
+
+        function clearData() {
+            if(confirm("Delete all history?")) { localStorage.removeItem('gymLogs'); location.reload(); }
         }
         init();
     </script>
