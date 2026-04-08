@@ -25,7 +25,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Nav from Screenshot */
         .top-nav {
             display: flex;
             justify-content: space-around;
@@ -65,14 +64,13 @@
         .muscle-header {
             color: var(--accent);
             padding: 0 25px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             margin-bottom: 20px;
         }
 
         .container { padding: 0 20px 140px 20px; max-width: 500px; margin: auto; }
 
-        /* Exercise Card */
         .card {
             background: var(--surface);
             border-radius: 24px;
@@ -103,8 +101,6 @@
             outline: none;
         }
 
-        input::placeholder { color: var(--dim); opacity: 0.5; }
-
         .add-set-link {
             color: var(--purple);
             font-size: 12px;
@@ -113,10 +109,8 @@
             margin-top: 15px;
             display: inline-block;
             cursor: pointer;
-            text-decoration: none;
         }
 
-        /* Finish Button Pinned to Bottom */
         .btn-finish {
             position: fixed;
             bottom: 35px;
@@ -130,14 +124,12 @@
             font-weight: 900;
             font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1px;
             box-shadow: 0 8px 24px rgba(0, 245, 212, 0.25);
             z-index: 3000;
         }
 
         .hidden { display: none; }
-        .chart-wrapper { background: var(--surface); border-radius: 24px; padding: 20px; }
-        .del-x { color: var(--dim); float: right; cursor: pointer; font-size: 12px; }
+        .del-x { color: #ff4757; float: right; cursor: pointer; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -158,7 +150,7 @@
     </div>
 
     <div id="stats-page" class="container hidden">
-        <div class="chart-wrapper">
+        <div class="card">
             <div style="color: var(--dim); font-size: 10px; font-weight: 800; margin-bottom: 20px;">MONTHLY VOLUME</div>
             <canvas id="volChart" height="280"></canvas>
         </div>
@@ -173,18 +165,19 @@
     </div>
 
 <script>
-    const baseRoutine = {
-        1: { name: "Chest & Triceps", ex: ["Bench Press", "Incline Press", "Pec Flys", "Pushdowns"] },
-        2: { name: "Back & Biceps", ex: ["Lat Pulldowns", "Rows", "Curls"] },
-        3: { name: "Legs", ex: ["Squats", "Leg Press", "Leg Curls"] },
-        4: { name: "Back & Chest", ex: ["Deadlifts", "Bench Press", "Rows"] },
-        5: { name: "Shoulders", ex: ["OHP", "Side Raises", "Facepulls"] },
-        6: { name: "Legs", ex: ["Squats", "Leg Press", "Leg Curls"] },
+    // The default lists you had before
+    const defaultSplit = {
+        1: { name: "Chest & Triceps", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Pec Cable Flys", "Machine Flys", "Bar Pushdowns", "Skull Crushers", "Cable Overhead Ext", "Dips"] },
+        2: { name: "Back & Biceps", ex: ["Wide-Grip Lat Pulldown", "Seated Cable Rows", "Close-Grip Lat", "T-Bar Rows", "Barbell Curls", "Hammer Curls", "Incline Curls", "Spider Curls", "Preacher Curls"] },
+        3: { name: "Legs", ex: ["Barbell Squat", "Bum Lunges", "Calf Raise", "Leg Press", "Leg Extension", "Hamstring Curls"] },
+        4: { name: "Back & Chest", ex: ["Barbell Bench Press", "Inclined Barbell Press", "Wide-Grip Lat Pulldown", "Seated Cable Rows", "T-Bar Rows"] },
+        5: { name: "Shoulders & Arms", ex: ["Shoulder Press", "Lateral Raise", "Front Raise", "Reverse Flys", "Dips", "Spider Curls"] },
+        6: { name: "Legs", ex: ["Barbell Squat", "Leg Press", "Leg Extension", "Hamstring Curls"] },
         0: { name: "Rest Day", ex: [] }
     };
 
-    let userSplit = JSON.parse(localStorage.getItem('lift_routine')) || baseRoutine;
-    let userLogs = JSON.parse(localStorage.getItem('lift_logs')) || [];
+    let userSplit = JSON.parse(localStorage.getItem('prolift_split')) || defaultSplit;
+    let userLogs = JSON.parse(localStorage.getItem('prolift_logs')) || [];
 
     function navTo(id) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
@@ -209,25 +202,14 @@
             html += `<div class="card">
                 <div class="ex-name">${name}</div>
                 <div id="sets-for-${exIdx}">
-                    ${createSets(exIdx, 3)} 
+                    <div class="set-row"><span class="set-num">SET 1</span><input type="number" class="w-${exIdx}-1" placeholder="kg"><input type="number" class="r-${exIdx}-1" placeholder="reps"></div>
+                    <div class="set-row"><span class="set-num">SET 2</span><input type="number" class="w-${exIdx}-2" placeholder="kg"><input type="number" class="r-${exIdx}-2" placeholder="reps"></div>
+                    <div class="set-row"><span class="set-num">SET 3</span><input type="number" class="w-${exIdx}-3" placeholder="kg"><input type="number" class="r-${exIdx}-3" placeholder="reps"></div>
                 </div>
                 <div class="add-set-link" onclick="injectSetRow(${exIdx})">+ ADD SET</div>
             </div>`;
         });
-        document.getElementById('log-list').innerHTML = html || '<div class="card">Enjoy your rest day!</div>';
-    }
-
-    // This function creates the 3 sets by default
-    function createSets(exIdx, num) {
-        let code = '';
-        for(let s=1; s<=num; s++) {
-            code += `<div class="set-row">
-                <span class="set-num">SET ${s}</span>
-                <input type="number" class="w-${exIdx}-${s}" placeholder="kg">
-                <input type="number" class="r-${exIdx}-${s}" placeholder="reps">
-            </div>`;
-        }
-        return code;
+        document.getElementById('log-list').innerHTML = html || '<div class="card">Rest Day</div>';
     }
 
     function injectSetRow(exIdx) {
@@ -259,11 +241,9 @@
 
         if(entry.exercises.length) {
             userLogs.unshift(entry);
-            localStorage.setItem('lift_logs', JSON.stringify(userLogs));
-            alert("Session Saved!");
+            localStorage.setItem('prolift_logs', JSON.stringify(userLogs));
+            alert("Workout Saved!");
             navTo('history');
-        } else {
-            alert("Please enter weights/reps first.");
         }
     }
 
@@ -272,24 +252,24 @@
         userLogs.forEach(log => {
             const date = new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
             html += `<div class="card">
-                <span class="del-x" onclick="removeLog(${log.id})">DELETE</span>
-                <div style="color:var(--accent); font-size:11px; font-weight:700; margin-bottom:4px">${date}</div>
-                <div style="font-weight:700; font-size:15px; margin-bottom:12px">${log.muscle}</div>
+                <span class="del-x" style="font-size:10px" onclick="removeLog(${log.id})">DELETE</span>
+                <div style="color:var(--accent); font-size:11px; font-weight:700;">${date}</div>
+                <div style="font-weight:700; font-size:16px; margin-bottom:12px">${log.muscle}</div>
                 ${log.exercises.map(ex => `
-                    <div style="margin-top:10px; font-size:13px; border-left: 2px solid var(--purple); padding-left:12px">
+                    <div style="margin-top:8px; font-size:13px; border-left: 2px solid var(--purple); padding-left:10px">
                         <strong>${ex.name}</strong><br>
-                        <span style="color:var(--dim)">${ex.sets.map(s => `${s.w}kg x ${s.r}`).join(' • ')}</span>
+                        ${ex.sets.map(s => `${s.w}kg x ${s.r}`).join(' | ')}
                     </div>
                 `).join('')}
             </div>`;
         });
-        document.getElementById('history-data').innerHTML = html || '<div class="card">No workouts logged.</div>';
+        document.getElementById('history-data').innerHTML = html || '<div class="card">No logs yet.</div>';
     }
 
     function removeLog(id) {
-        if(confirm("Permanently delete?")) {
+        if(confirm("Delete this session?")) {
             userLogs = userLogs.filter(l => l.id !== id);
-            localStorage.setItem('lift_logs', JSON.stringify(userLogs));
+            localStorage.setItem('prolift_logs', JSON.stringify(userLogs));
             renderHistory();
         }
     }
@@ -303,7 +283,6 @@
 
         const ctx = document.getElementById('volChart').getContext('2d');
         if(window.mainChart) window.mainChart.destroy();
-
         const grad = ctx.createLinearGradient(0, 0, 0, 300);
         grad.addColorStop(0, 'rgba(0, 245, 212, 0.2)');
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -314,23 +293,11 @@
                 labels: currentMonthData.map(l => new Date(l.date).getDate()),
                 datasets: [{
                     data: currentMonthData.map(l => l.exercises.reduce((a,b) => a + b.sets.reduce((x,y) => x + (y.w*y.r),0),0)),
-                    borderColor: '#00f5d4',
-                    borderWidth: 3,
-                    fill: true,
-                    backgroundColor: grad,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#00f5d4'
+                    borderColor: '#00f5d4', borderWidth: 3, fill: true, backgroundColor: grad, tension: 0.4, pointRadius: 3
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: '#6b7280', font: {size: 10} } },
-                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { display: false } }
-                }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                scales: { x: { grid: { display: false }, ticks: { color: '#6b7280' } }, y: { display: false } }
             }
         });
     }
@@ -340,13 +307,13 @@
         let html = '';
         for(let i=0; i<7; i++) {
             html += `<div class="card">
-                <div style="color:var(--dim); font-size:10px; font-weight:800; text-transform:uppercase; margin-bottom:8px">${week[i]}</div>
+                <div style="color:var(--dim); font-size:10px; font-weight:800; margin-bottom:8px">${week[i]}</div>
                 <input style="width:100%; text-align:left; margin-bottom:15px; box-sizing:border-box" value="${userSplit[i].name}" onchange="editSplitName(${i}, this.value)">
                 <div id="edit-box-${i}">
                     ${userSplit[i].ex.map((ex, idx) => `
                         <div style="display:flex; margin-bottom:10px; gap:10px">
                             <input style="flex:1; text-align:left" value="${ex}" onchange="editExName(${i}, ${idx}, this.value)">
-                            <button onclick="killEx(${i}, ${idx})" style="border:none; background:none; color:#ff4757; font-weight:bold">✕</button>
+                            <span class="del-x" onclick="killEx(${i}, ${idx})">✕</span>
                         </div>
                     `).join('')}
                 </div>
@@ -360,7 +327,7 @@
     function editExName(d, i, v) { userSplit[d].ex[i] = v; saveSplit(); }
     function addExToSplit(d) { userSplit[d].ex.push("New Exercise"); renderEditor(); saveSplit(); }
     function killEx(d, i) { userSplit[d].ex.splice(i, 1); renderEditor(); saveSplit(); }
-    function saveSplit() { localStorage.setItem('lift_routine', JSON.stringify(userSplit)); }
+    function saveSplit() { localStorage.setItem('prolift_split', JSON.stringify(userSplit)); }
 
     navTo('log');
 </script>
