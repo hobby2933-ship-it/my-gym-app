@@ -13,23 +13,27 @@
             --purple: #9b5de5;
             --text: #ffffff;
             --dim: #6b7280;
+            --input-bg: #222232;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             padding: 0;
-            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Nav Styling from your Screenshot */
+        /* Top Nav from Screenshot */
         .top-nav {
             display: flex;
             justify-content: space-around;
-            padding: 20px 0 10px 0;
+            padding: 25px 0 10px 0;
             background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 2000;
         }
 
         .tab-btn {
@@ -49,117 +53,119 @@
             border-bottom: 3px solid var(--accent);
         }
 
-        .page-title {
+        .page-label {
             text-align: center;
             color: var(--dim);
-            font-size: 12px;
-            letter-spacing: 3px;
-            margin: 20px 0;
+            font-size: 11px;
+            letter-spacing: 4px;
+            margin: 25px 0;
             text-transform: uppercase;
         }
 
-        .workout-category {
+        .muscle-header {
             color: var(--accent);
-            padding: 0 20px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
+            padding: 0 25px;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
 
-        .container { padding: 0 20px 100px 20px; max-width: 500px; margin: auto; }
+        .container { padding: 0 20px 140px 20px; max-width: 500px; margin: auto; }
 
-        /* Card Styling from Screenshot */
+        /* Exercise Card */
         .card {
             background: var(--surface);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 25px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
 
-        .ex-title { font-size: 16px; margin-bottom: 20px; font-weight: 500; }
+        .ex-name { font-size: 17px; margin-bottom: 20px; font-weight: 500; }
 
         .set-row { 
             display: flex; 
             align-items: center; 
-            justify-content: space-between; 
-            margin-bottom: 15px; 
+            margin-bottom: 12px;
+            gap: 15px;
         }
 
-        .set-label { color: var(--dim); font-size: 10px; font-weight: bold; width: 40px; }
+        .set-num { color: var(--dim); font-size: 10px; font-weight: 800; width: 45px; text-transform: uppercase; }
 
         input {
-            background: #2a2a3a;
-            border: 1px solid #3f3f50;
+            background: var(--input-bg);
+            border: 1px solid #333345;
             color: var(--text);
-            padding: 15px;
+            padding: 14px;
             border-radius: 12px;
-            width: 80px;
+            flex: 1;
             text-align: center;
-            font-size: 14px;
+            font-size: 15px;
+            outline: none;
         }
 
-        .add-set-btn {
-            background: none;
-            border: none;
+        input::placeholder { color: var(--dim); opacity: 0.5; }
+
+        .add-set-link {
             color: var(--purple);
             font-size: 12px;
-            font-weight: bold;
-            padding: 10px 0;
-            cursor: pointer;
+            font-weight: 700;
             text-transform: uppercase;
+            margin-top: 15px;
+            display: inline-block;
+            cursor: pointer;
+            text-decoration: none;
         }
 
-        /* Finish Button Styling from Screenshot */
+        /* Finish Button Pinned to Bottom */
         .btn-finish {
             position: fixed;
-            bottom: 30px;
-            left: 20px;
-            right: 20px;
+            bottom: 35px;
+            left: 25px;
+            right: 25px;
             background: var(--accent);
             color: #000;
             border: none;
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 16px;
             font-weight: 900;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 10px 20px rgba(0, 245, 212, 0.2);
-            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 245, 212, 0.25);
+            z-index: 3000;
         }
 
         .hidden { display: none; }
-        .del-history { color: #ff4757; font-size: 10px; float: right; cursor: pointer; }
-        .chart-card { background: var(--surface); border-radius: 20px; padding: 20px; margin-top: 10px; }
+        .chart-wrapper { background: var(--surface); border-radius: 24px; padding: 20px; }
+        .del-x { color: var(--dim); float: right; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div class="top-nav">
-        <button class="tab-btn active" id="btn-log" onclick="openTab('log')">Log</button>
-        <button class="tab-btn" id="btn-stats" onclick="openTab('stats')">Analytics</button>
-        <button class="tab-btn" id="btn-history" onclick="openTab('history')">History</button>
-        <button class="tab-btn" id="btn-edit" onclick="openTab('edit')">Routine</button>
+        <button class="tab-btn active" id="btn-log" onclick="navTo('log')">Log</button>
+        <button class="tab-btn" id="btn-stats" onclick="navTo('stats')">Analytics</button>
+        <button class="tab-btn" id="btn-history" onclick="navTo('history')">History</button>
+        <button class="tab-btn" id="btn-edit" onclick="navTo('edit')">Routine</button>
     </div>
 
-    <div class="page-title" id="page-label">LOG</div>
+    <div class="page-label" id="page-indicator">LOG</div>
 
     <div id="log-page" class="container">
-        <div class="workout-category" id="today-muscle"></div>
-        <div id="exercise-list"></div>
+        <div class="muscle-header" id="current-workout-name"></div>
+        <div id="log-list"></div>
         <button class="btn-finish" onclick="saveSession()">FINISH SESSION</button>
     </div>
 
     <div id="stats-page" class="container hidden">
-        <div class="chart-card">
-            <div style="color: var(--dim); font-size: 11px; margin-bottom: 15px;">MONTHLY PERFORMANCE</div>
-            <canvas id="volChart" height="250"></canvas>
+        <div class="chart-wrapper">
+            <div style="color: var(--dim); font-size: 10px; font-weight: 800; margin-bottom: 20px;">MONTHLY VOLUME</div>
+            <canvas id="volChart" height="280"></canvas>
         </div>
     </div>
 
     <div id="history-page" class="container hidden">
-        <div id="history-content"></div>
+        <div id="history-data"></div>
     </div>
 
     <div id="edit-page" class="container hidden">
@@ -167,7 +173,7 @@
     </div>
 
 <script>
-    const defaultSplit = {
+    const baseRoutine = {
         1: { name: "Chest & Triceps", ex: ["Bench Press", "Incline Press", "Pec Flys", "Pushdowns"] },
         2: { name: "Back & Biceps", ex: ["Lat Pulldowns", "Rows", "Curls"] },
         3: { name: "Legs", ex: ["Squats", "Leg Press", "Leg Curls"] },
@@ -177,15 +183,15 @@
         0: { name: "Rest Day", ex: [] }
     };
 
-    let routine = JSON.parse(localStorage.getItem('routine_v4')) || defaultSplit;
-    let logs = JSON.parse(localStorage.getItem('logs_v4')) || [];
+    let userSplit = JSON.parse(localStorage.getItem('lift_routine')) || baseRoutine;
+    let userLogs = JSON.parse(localStorage.getItem('lift_logs')) || [];
 
-    function openTab(id) {
+    function navTo(id) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id + '-page').classList.remove('hidden');
         document.getElementById('btn-' + id).classList.add('active');
-        document.getElementById('page-label').innerText = id.toUpperCase();
+        document.getElementById('page-indicator').innerText = id.toUpperCase();
         
         if(id === 'log') renderLog();
         if(id === 'history') renderHistory();
@@ -195,100 +201,102 @@
 
     function renderLog() {
         const day = new Date().getDay();
-        const workout = routine[day];
-        document.getElementById('today-muscle').innerText = workout.name;
+        const workout = userSplit[day];
+        document.getElementById('current-workout-name').innerText = workout.name;
         
         let html = '';
         workout.ex.forEach((name, exIdx) => {
             html += `<div class="card">
-                <div class="ex-title">${name}</div>
-                <div id="sets-container-${exIdx}">
-                    ${generateSetRows(exIdx, 3)} 
+                <div class="ex-name">${name}</div>
+                <div id="sets-for-${exIdx}">
+                    ${createSets(exIdx, 3)} 
                 </div>
-                <button class="add-set-btn" onclick="addNewSet(${exIdx})">+ Add Set</button>
+                <div class="add-set-link" onclick="injectSetRow(${exIdx})">+ ADD SET</div>
             </div>`;
         });
-        document.getElementById('exercise-list').innerHTML = html || 'RECOVERY DAY';
+        document.getElementById('log-list').innerHTML = html || '<div class="card">Enjoy your rest day!</div>';
     }
 
-    // Function to generate the HTML for sets (starts at 3)
-    function generateSetRows(exIdx, count) {
-        let rows = '';
-        for(let s=1; s<=count; s++) {
-            rows += `<div class="set-row">
-                <span class="set-label">SET ${s}</span>
+    // This function creates the 3 sets by default
+    function createSets(exIdx, num) {
+        let code = '';
+        for(let s=1; s<=num; s++) {
+            code += `<div class="set-row">
+                <span class="set-num">SET ${s}</span>
                 <input type="number" class="w-${exIdx}-${s}" placeholder="kg">
                 <input type="number" class="r-${exIdx}-${s}" placeholder="reps">
             </div>`;
         }
-        return rows;
+        return code;
     }
 
-    function addNewSet(exIdx) {
-        const container = document.getElementById(`sets-container-${exIdx}`);
-        const nextSet = container.children.length + 1;
+    function injectSetRow(exIdx) {
+        const parent = document.getElementById(`sets-for-${exIdx}`);
+        const setNum = parent.children.length + 1;
         const div = document.createElement('div');
         div.className = 'set-row';
-        div.innerHTML = `<span class="set-label">SET ${nextSet}</span>
-                        <input type="number" class="w-${exIdx}-${nextSet}" placeholder="kg">
-                        <input type="number" class="r-${exIdx}-${nextSet}" placeholder="reps">`;
-        container.appendChild(div);
+        div.innerHTML = `<span class="set-num">SET ${setNum}</span>
+                        <input type="number" class="w-${exIdx}-${setNum}" placeholder="kg">
+                        <input type="number" class="r-${exIdx}-${setNum}" placeholder="reps">`;
+        parent.appendChild(div);
     }
 
     function saveSession() {
         const day = new Date().getDay();
-        const workout = routine[day];
-        const session = { id: Date.now(), date: new Date().toISOString(), muscle: workout.name, data: [] };
+        const workout = userSplit[day];
+        const entry = { id: Date.now(), date: new Date().toISOString(), muscle: workout.name, exercises: [] };
 
         workout.ex.forEach((name, exIdx) => {
             let sets = [];
-            const count = document.getElementById(`sets-container-${exIdx}`).children.length;
-            for(let s=1; s<=count; s++) {
+            const rowCount = document.getElementById(`sets-for-${exIdx}`).children.length;
+            for(let s=1; s<=rowCount; s++) {
                 const w = document.querySelector(`.w-${exIdx}-${s}`).value;
                 const r = document.querySelector(`.r-${exIdx}-${s}`).value;
                 if(w && r) sets.push({w, r});
             }
-            if(sets.length) session.data.push({name, sets});
+            if(sets.length) entry.exercises.push({name, sets});
         });
 
-        if(session.data.length) {
-            logs.unshift(session);
-            localStorage.setItem('logs_v4', JSON.stringify(logs));
-            alert("Workout Complete!");
-            openTab('history');
+        if(entry.exercises.length) {
+            userLogs.unshift(entry);
+            localStorage.setItem('lift_logs', JSON.stringify(userLogs));
+            alert("Session Saved!");
+            navTo('history');
+        } else {
+            alert("Please enter weights/reps first.");
         }
     }
 
     function renderHistory() {
         let html = '';
-        logs.forEach(l => {
-            const d = new Date(l.date).toLocaleDateString();
+        userLogs.forEach(log => {
+            const date = new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
             html += `<div class="card">
-                <span class="del-history" onclick="deleteHistory(${l.id})">DELETE</span>
-                <div style="color:var(--accent); font-size:12px; margin-bottom:5px">${d}</div>
-                <div style="font-weight:bold; margin-bottom:10px">${l.muscle}</div>
-                ${l.data.map(ex => `
-                    <div style="margin-top:10px; font-size:13px; border-left: 2px solid var(--purple); padding-left:10px">
+                <span class="del-x" onclick="removeLog(${log.id})">DELETE</span>
+                <div style="color:var(--accent); font-size:11px; font-weight:700; margin-bottom:4px">${date}</div>
+                <div style="font-weight:700; font-size:15px; margin-bottom:12px">${log.muscle}</div>
+                ${log.exercises.map(ex => `
+                    <div style="margin-top:10px; font-size:13px; border-left: 2px solid var(--purple); padding-left:12px">
                         <strong>${ex.name}</strong><br>
-                        ${ex.sets.map(s => `${s.w}kg x ${s.r}`).join(' | ')}
+                        <span style="color:var(--dim)">${ex.sets.map(s => `${s.w}kg x ${s.r}`).join(' • ')}</span>
                     </div>
                 `).join('')}
             </div>`;
         });
-        document.getElementById('history-content').innerHTML = html || 'No data yet.';
+        document.getElementById('history-data').innerHTML = html || '<div class="card">No workouts logged.</div>';
     }
 
-    function deleteHistory(id) {
-        if(confirm("Delete this log?")) {
-            logs = logs.filter(l => l.id !== id);
-            localStorage.setItem('logs_v4', JSON.stringify(logs));
+    function removeLog(id) {
+        if(confirm("Permanently delete?")) {
+            userLogs = userLogs.filter(l => l.id !== id);
+            localStorage.setItem('lift_logs', JSON.stringify(userLogs));
             renderHistory();
         }
     }
 
     function renderStats() {
         const now = new Date();
-        const monthLogs = logs.filter(l => {
+        const currentMonthData = userLogs.filter(l => {
             const d = new Date(l.date);
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         }).reverse();
@@ -296,22 +304,22 @@
         const ctx = document.getElementById('volChart').getContext('2d');
         if(window.mainChart) window.mainChart.destroy();
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(0, 245, 212, 0.3)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        const grad = ctx.createLinearGradient(0, 0, 0, 300);
+        grad.addColorStop(0, 'rgba(0, 245, 212, 0.2)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         window.mainChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: monthLogs.map(l => new Date(l.date).getDate()),
+                labels: currentMonthData.map(l => new Date(l.date).getDate()),
                 datasets: [{
-                    data: monthLogs.map(l => l.data.reduce((a,b) => a + b.sets.reduce((x,y) => x + (y.w*y.r),0),0)),
+                    data: currentMonthData.map(l => l.exercises.reduce((a,b) => a + b.sets.reduce((x,y) => x + (y.w*y.r),0),0)),
                     borderColor: '#00f5d4',
                     borderWidth: 3,
                     fill: true,
-                    backgroundColor: gradient,
+                    backgroundColor: grad,
                     tension: 0.4,
-                    pointRadius: 4,
+                    pointRadius: 3,
                     pointBackgroundColor: '#00f5d4'
                 }]
             },
@@ -320,41 +328,41 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#6b7280' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } }
+                    x: { grid: { display: false }, ticks: { color: '#6b7280', font: {size: 10} } },
+                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { display: false } }
                 }
             }
         });
     }
 
     function renderEditor() {
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         let html = '';
         for(let i=0; i<7; i++) {
             html += `<div class="card">
-                <div style="color:var(--dim); font-size:10px; margin-bottom:5px">${days[i]}</div>
-                <input style="width:100%; text-align:left; margin-bottom:15px; box-sizing:border-box" value="${routine[i].name}" onchange="updateRoutineName(${i}, this.value)">
-                <div id="edit-ex-box-${i}">
-                    ${routine[i].ex.map((ex, exIdx) => `
-                        <div style="display:flex; margin-bottom:10px">
-                            <input style="flex:1; text-align:left" value="${ex}" onchange="updateExName(${i}, ${exIdx}, this.value)">
-                            <button onclick="removeEx(${i}, ${exIdx})" style="border:none; background:none; color:red; padding-left:10px">✕</button>
+                <div style="color:var(--dim); font-size:10px; font-weight:800; text-transform:uppercase; margin-bottom:8px">${week[i]}</div>
+                <input style="width:100%; text-align:left; margin-bottom:15px; box-sizing:border-box" value="${userSplit[i].name}" onchange="editSplitName(${i}, this.value)">
+                <div id="edit-box-${i}">
+                    ${userSplit[i].ex.map((ex, idx) => `
+                        <div style="display:flex; margin-bottom:10px; gap:10px">
+                            <input style="flex:1; text-align:left" value="${ex}" onchange="editExName(${i}, ${idx}, this.value)">
+                            <button onclick="killEx(${i}, ${idx})" style="border:none; background:none; color:#ff4757; font-weight:bold">✕</button>
                         </div>
                     `).join('')}
                 </div>
-                <button class="add-set-btn" onclick="addExRow(${i})">+ Add Movement</button>
+                <div class="add-set-link" onclick="addExToSplit(${i})">+ Add Movement</div>
             </div>`;
         }
         document.getElementById('routine-editor').innerHTML = html;
     }
 
-    function updateRoutineName(d, v) { routine[d].name = v; saveR(); }
-    function updateExName(d, i, v) { routine[d].ex[i] = v; saveR(); }
-    function addExRow(d) { routine[d].ex.push("New Exercise"); renderEditor(); saveR(); }
-    function removeEx(d, i) { routine[d].ex.splice(i, 1); renderEditor(); saveR(); }
-    function saveR() { localStorage.setItem('routine_v4', JSON.stringify(routine)); }
+    function editSplitName(d, v) { userSplit[d].name = v; saveSplit(); }
+    function editExName(d, i, v) { userSplit[d].ex[i] = v; saveSplit(); }
+    function addExToSplit(d) { userSplit[d].ex.push("New Exercise"); renderEditor(); saveSplit(); }
+    function killEx(d, i) { userSplit[d].ex.splice(i, 1); renderEditor(); saveSplit(); }
+    function saveSplit() { localStorage.setItem('lift_routine', JSON.stringify(userSplit)); }
 
-    openTab('log');
+    navTo('log');
 </script>
 </body>
 </html>
